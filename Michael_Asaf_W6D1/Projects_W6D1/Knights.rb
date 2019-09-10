@@ -1,3 +1,6 @@
+require_relative "00_tree_node"
+require "byebug"
+
 class KnightPathFinder
 
     attr_reader :start_position, :root_node
@@ -27,9 +30,10 @@ class KnightPathFinder
   end 
 
   def initialize(position)
-    @root_node = PolyTreeNode.new(positon)
+    @root_node = PolyTreeNode.new(position)
     @start_position = position
     @considered_positions = [position]
+    build_move_tree
   end
 
   def new_move_positions(pos)
@@ -39,12 +43,32 @@ class KnightPathFinder
     unchecked
   end
 
-    def build_move_tree(position)
-        que = [self.root_node.value]
+   def build_move_tree
+        que = [root_node]
         until que.empty?
-            current_pos = que.shift
-            return current_pos if current_pos == position
-            que.concat(new_move_positions(current_pos))
+            current_node = que.shift
+            new_move_positions(current_node.value).each do |new_pos|
+		          next_node = PolyTreeNode.new(new_pos)
+		          current_node.add_child(next_node)
+		          que << next_node
+	          end
         end
     end 
+
+    def find_path(end_pos)
+      end_node = root_node.bfs(end_pos)
+      trace_path_back(end_node)
+    end
+
+    def trace_path_back(end_node)
+      moves = []
+      que = [end_node]
+      until que.empty?
+        current_node = que.shift
+        moves.unshift(current_node.value)
+        que << current_node.parent if current_node.parent
+      end
+      moves
+    end
 end
+
